@@ -1,0 +1,543 @@
+openapi: 3.0.0
+info:
+  title: Cashu API
+  description: Cashu Protocol OpenAPI specification. 
+  version: 1.0.0
+
+paths:
+  /v1/swap:
+    post:
+      summary: swap proofs for new ones.
+      requestBody:
+          $ref: '#/components/requestBodies/PostSwapRequest'
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostSwapResponse'
+
+  /v1/keys:
+    get:
+      summary: Get active keysets from mint
+      responses: 
+        '200': 
+          $ref: '#/components/responses/GetKeysResponse'
+
+  /v1/keys/{keysetId}:
+    get:
+      summary: Get Keys from specific keysetId
+      parameters:
+        - name: keysetId
+          in: path
+          description: keyset id
+          required: true
+          schema:
+            type: string
+
+      responses: 
+        '200': 
+          $ref: '#/components/responses/GetKeysResponse'
+
+  /v1/keysets:
+    get:
+      summary: Get AlL keysets
+      responses: 
+        '200': 
+          $ref: '#/components/responses/GetKeysetsResponse'
+
+  /v1/mint/quote/bolt11:
+    post:
+      summary: Request for minting
+      requestBody:
+          $ref: '#/components/requestBodies/PostMintQuoteBolt11Request'
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostMintQuoteBolt11Response'
+
+  /v1/mint/quote/bolt11/{quote_id}:
+    get:
+      summary: status from specific mint
+      parameters:
+        - name: quote_id
+          in: path
+          description: id from quote
+          required: true
+          schema:
+            type: string
+
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostMintQuoteBolt11Response'
+
+  /v1/mint/bolt11:
+    post:
+      summary: Mint tokens
+      requestBody:
+          $ref: '#/components/requestBodies/PostMintBolt11Request'
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostSwapResponse'
+
+  /v1/melt/quote/bolt11:
+    post:
+      summary: Request for melting
+      requestBody:
+          $ref: '#/components/requestBodies/PostMeltQuoteBolt11Request'
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostMeltQuoteBolt11Response'
+
+  /v1/melt/quote/bolt11/{quote_id}:
+    get:
+      summary: status from specific melt
+      parameters:
+        - name: quote_id
+          in: path
+          description: id from quote
+          required: true
+          schema:
+            type: string
+
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostMeltQuoteBolt11Response'
+
+  /v1/melt/bolt11:
+    post:
+      summary: Melt tokens
+      requestBody:
+          $ref: '#/components/requestBodies/PostMeltBolt11Request'
+      responses: 
+        '200': 
+          $ref: '#/components/responses/PostMeltQuoteBolt11Response'
+  /v1/info:
+    get:
+      summary: information from mint
+      responses: 
+        '200': 
+          $ref: '#/components/responses/GetInfoResponse'
+
+components:
+  requestBodies:
+    PostSwapRequest:
+      description: proof and blind messages for swap
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - inputs
+              - outputs
+            properties:
+              inputs: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proof'
+              outputs: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlindedMessage'
+    PostMintQuoteBolt11Request:
+      description: Arguments for making a mint
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - amount
+              - unit
+              - description
+            properties:
+              amount: 
+                type: integer
+              unit: 
+                type: string
+              description: 
+                type: string
+
+    PostMintBolt11Request:
+      description: request to mint tokens
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - quote
+              - outputs
+            properties:
+              amount: 
+                type: integer
+              unit: 
+                type: string
+              description: 
+                type: string
+
+    PostMeltQuoteBolt11Request:
+      description: Arguments for melting
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - request
+              - unit
+            properties:
+              request: 
+                description: "lightning network invoice"
+                type: integer
+              unit: 
+                type: string
+
+    PostMeltBolt11Request:
+      description: "list of proofs for melting"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - quote
+              - inputs
+            properties:
+              quote:
+                type: string
+              inputs:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proof'
+
+  responses:
+    PostSwapResponse:
+      description: "list of blinded signatures"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - signatures
+            properties:
+              signatures:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlindedSignature'
+
+    GetKeysResponse:
+      description: "Active keysets of the mint"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - keysets
+            properties:
+              keysets:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KeysetList'
+
+    GetKeysetsResponse:
+      description: "All keys from mint"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - keysets
+            properties:
+              keysets:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KeysetsList'
+
+    PostMintQuoteBolt11Response:
+      description: "Quote for minting"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - quote
+              - request
+              - expiry
+              - state
+            properties:
+              quote:
+                type: string
+              request:
+                description: "lightning network invoice"
+                type: string
+              expiry:
+                description: "expiration of lightning invoice"
+                type: integer
+              state:
+                description: "State of the minting process"
+                $ref: '#/components/schemas/STATE'
+    PostMeltQuoteBolt11Response:
+      description: "Quote for Melting"
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - quote
+              - state
+              - amount
+              - expiry
+              - fee_reserve
+              - payment_preimage
+            properties:
+              quote:
+                type: string
+              state:
+                description: "State of the minting process"
+                $ref: '#/components/schemas/STATE'
+              amount:
+                type: integer
+              expiry:
+                description: "expiration of lightning invoice"
+                type: integer
+              fee_reserve:
+                type: integer
+              payment_preimage:
+                type: string
+    GetInfoResponse:
+      description: "information from mint"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MintInfo'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Numeric code of error
+        detail:
+          type: string
+          description: Explination of what happened
+
+    BlindedMessage:
+      type: object
+      required:
+        - amount
+        - id
+        - B_
+      properties:
+        amount:
+          type: integer
+          description: Amount in satoshis
+        id:
+          type: string
+          description: keyset id used (hex)
+        B_:
+          type: string
+          description: Blinded message (hex)
+
+    BlindedSignature:
+      type: object
+      required:
+        - amount
+        - id
+        - C_
+      properties:
+        amount:
+          type: integer
+          description: Amount in satoshis
+        id:
+          type: string
+          description: keyset id used (hex)
+        C_:
+          type: string
+          description: Blinded signature (hex)
+
+    Proof:
+      type: object
+      required:
+        - amount
+        - id
+        - secret
+        - C
+      properties:
+        id:
+          type: string
+          description: keyset id used (hex)
+        amount:
+          type: integer
+          description: Amount in satoshis
+        secret:
+          type: string
+          description: Secret value used for blinding
+        C:
+          type: string
+          description: Signature (hex)
+        dleq:
+          $ref: '#/components/schemas/Dleq'
+
+    Dleq:
+      type: object
+      required:
+        - e
+        - s
+      properties:
+        e: 
+          type: string
+        s: 
+          type: string
+
+    KeysetList:
+      type: object
+      required:
+        - id
+        - unit
+        - keys
+      properties:
+        id: 
+          description: keyset id used (hex)
+          type: string
+        unit: 
+          description: unit used by reference
+          type: string
+        keys: 
+          type: object
+          description: individual keys by amount
+          additionalProperties: true
+
+    KeysetsList:
+      type: object
+      required:
+        - id
+        - unit
+        - active
+      properties:
+        id: 
+          description: keyset id used (hex)
+          type: string
+        unit: 
+          description: unit used by reference
+          type: string
+        active: 
+          description: if keyset is active
+          type: boolean
+        input_fee_ppk: 
+          description: fee from mint keyset
+          type: integer
+    STATE:
+      type: string
+      enum:
+        - UNPAID
+        - PAID
+        - ISSUED
+
+    MintInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Bob's Cashu mint"
+        pubkey:
+          type: string
+          example: "0283bf290884eed3a7ca2663fc0260de2e2064d6b355ea13f98dec004b7a7ead99"
+        version:
+          type: string
+          example: "Nutshell/0.15.0"
+        description:
+          type: string
+          example: "The short mint description"
+        description_long:
+          type: string
+          example: "A description that can be a long piece of text."
+        contact:
+          type: array
+          items:
+            type: object
+            properties:
+              method:
+                type: string
+                enum: [email, twitter, nostr]
+              info:
+                type: string
+        motd:
+          type: string
+          example: "Message to display to users."
+        icon_url:
+          type: string
+          format: uri
+          example: "https://mint.host/icon.jpg"
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        time:
+          type: integer
+          format: int64
+        nuts:
+          type: object
+          properties:
+            "4":
+              type: object
+              properties:
+                methods:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      method:
+                        type: string
+                      unit:
+                        type: string
+                      min_amount:
+                        type: integer
+                      max_amount:
+                        type: integer
+                disabled:
+                  type: boolean
+            "5":
+              type: object
+              properties:
+                methods:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      method:
+                        type: string
+                      unit:
+                        type: string
+                      min_amount:
+                        type: integer
+                      max_amount:
+                        type: integer
+                disabled:
+                  type: boolean
+            "7":
+              type: object
+              properties:
+                supported:
+                  type: boolean
+            "8":
+              type: object
+              properties:
+                supported:
+                  type: boolean
+            "9":
+              type: object
+              properties:
+                supported:
+                  type: boolean
+            "10":
+              type: object
+              properties:
+                supported:
+                  type: boolean
+            "12":
+              type: object
+              properties:
+                supported:
+                  type: boolean
